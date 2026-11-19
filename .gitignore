@@ -1,0 +1,27 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.vite/
+
+# Operating-system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# Editor settings
+.idea/
+.vscode/
+
+bun.lockb
+bun.lock
+package-lock.json

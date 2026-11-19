@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "shared-lib-web/styles.css";
+
+
+/* All 35 DaisyUI 5 themes. The custom org themes come from sor (/content-load?query=theme, config.loadThemes): no CSS. */
+@plugin "daisyui" {
+  themes: all;
+}
+
+.module-button-theme {
+  display: contents;
+}
+
+.module-button-theme button:disabled {
+  background-color: color-mix(
+    in oklab,
+    var(--color-primary) 15%,
+    var(--color-base-100)
+  ) !important;
+  color: var(--color-primary) !important;
+  opacity: 1 !important;
+}
