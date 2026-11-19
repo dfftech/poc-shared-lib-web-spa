@@ -48,7 +48,6 @@ export interface SettingsModel {
   megaMenuButtonProps: TypeButtonProps;
   menuOnButtonProps: TypeButtonProps;
   menuOffButtonProps: TypeButtonProps;
-  themeButtonProps: Record<string, TypeButtonProps>;
 }
 
 /** Theme buttons carry the theme name in data-value. */
@@ -157,26 +156,6 @@ export function useSettings(): SettingsModel {
     [isMenuVisible, t],
   );
 
-  const themeButtonProps = useMemo(
-    () =>
-      Object.fromEntries(
-        [...lightThemes, ...darkThemes].map((themeName) => [
-          themeName,
-          {
-            action: themeName === theme ? ("primary" as const) : ("ghost" as const),
-            label: themeName,
-            size: "sm" as const,
-            icon: undefined,
-            className:
-              "gap-2 border border-base-300 capitalize",
-            dataValue: themeName,
-            onPress: handleSettingsThemeClick,
-          } satisfies TypeButtonProps,
-        ]),
-      ) as Record<string, TypeButtonProps>,
-    [darkThemes, lightThemes, t, theme],
-  );
-
   return {
     titleText: t("settings.title"),
     themeTitle: t("settings.theme"),
@@ -204,6 +183,5 @@ export function useSettings(): SettingsModel {
     megaMenuButtonProps,
     menuOnButtonProps,
     menuOffButtonProps,
-    themeButtonProps,
   };
 }

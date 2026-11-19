@@ -1,22 +1,33 @@
 // settings.page.tsx — view only. Basic example: one language and no branches, so no language or store section.
 import { ContentLayout, HeadLayout, TypeButton, TypeIcon, type Theme } from "shared-lib-web";
 import type { ReactElement } from "react";
-import type { TypeButtonProps } from "shared-lib-web";
-import { useSettings } from "./settings.page.ts";
+import { handleSettingsThemeClick, useSettings } from "./settings.page.ts";
 
 /** One button per theme, with the theme's primary / secondary / accent colours. */
 function buildThemeButtons(
   themes: Theme[],
-  _activeTheme: Theme,
-  themeButtonProps: Record<string, TypeButtonProps>,
+  activeTheme: Theme,
 ): ReactElement[] {
   const buttons: ReactElement[] = [];
   for (const themeName of themes) {
     const button = (
-      <TypeButton
-        {...themeButtonProps[themeName]}
+      <button
+        type="button"
         key={themeName}
-      />
+        className={`btn btn-sm gap-2 border border-base-300 capitalize ${
+          themeName === activeTheme ? "btn-primary" : "btn-ghost"
+        }`}
+        data-value={themeName}
+        aria-pressed={themeName === activeTheme}
+        onClick={handleSettingsThemeClick}
+      >
+        <span data-theme={themeName} className="flex gap-0.5 rounded bg-base-100 p-1" aria-hidden="true">
+          <span className="size-2 rounded-full bg-primary" />
+          <span className="size-2 rounded-full bg-secondary" />
+          <span className="size-2 rounded-full bg-accent" />
+        </span>
+        {themeName}
+      </button>
     );
     buttons.push(button);
   }
@@ -42,10 +53,9 @@ export function SettingsPage() {
     megaMenuButtonProps,
     menuOnButtonProps,
     menuOffButtonProps,
-    themeButtonProps,
   } = useSettings();
-  const lightThemeButtons = buildThemeButtons(lightThemes, theme, themeButtonProps);
-  const darkThemeButtons = buildThemeButtons(darkThemes, theme, themeButtonProps);
+  const lightThemeButtons = buildThemeButtons(lightThemes, theme);
+  const darkThemeButtons = buildThemeButtons(darkThemes, theme);
 
   return (
     <>
