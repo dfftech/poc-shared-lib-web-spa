@@ -509,6 +509,95 @@ export function useProfileForm() {
     [t, onResetPassword, isResettingPassword]
   );
 
+  const closeIconButtonProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: t('close'),
+      icon: 'X' as const,
+      isIconOnly: true,
+      onPress: cancelProps.onPress,
+      className: 'btn-circle opacity-70 hover:opacity-100 hover:bg-base-200',
+    }),
+    [cancelProps.onPress, t]
+  );
+
+  const identityTabProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: `1 ${t('identityContact')}`,
+      onPress: () => void onTabClick(1),
+      className: `flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all ${
+        currentStep === 1
+          ? 'bg-base-100 text-primary shadow-xs border border-base-300'
+          : 'text-base-content/60 hover:text-base-content hover:bg-base-300/50'
+      }`,
+    }),
+    [currentStep, onTabClick, t]
+  );
+
+  const addressTabProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: `2 ${t('addressDetails')}`,
+      onPress: () => void onTabClick(2),
+      className: `flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all ${
+        currentStep === 2
+          ? 'bg-base-100 text-primary shadow-xs border border-base-300'
+          : 'text-base-content/60 hover:text-base-content hover:bg-base-300/50'
+      }`,
+    }),
+    [currentStep, onTabClick, t]
+  );
+
+  const copyEmailButtonProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: t('copyEmail', 'Copy email'),
+      icon: copiedField === 'email' ? 'Check' as const : 'Copy' as const,
+      isIconOnly: true,
+      onPress: () => copyToClipboard(createdCredentials?.email || '', 'email'),
+      className: 'btn-square text-base-content/70 hover:text-primary',
+    }),
+    [copiedField, copyToClipboard, createdCredentials?.email, t]
+  );
+
+  const togglePasswordButtonProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: showPassword
+        ? t('hidePassword', 'Hide password')
+        : t('showPassword', 'Show password'),
+      icon: showPassword ? 'EyeOff' as const : 'Eye' as const,
+      isIconOnly: true,
+      onPress: () => setShowPassword((value) => !value),
+      className: 'btn-square text-base-content/70 hover:text-primary',
+    }),
+    [setShowPassword, showPassword, t]
+  );
+
+  const copyPasswordButtonProps = useMemo(
+    () => ({
+      action: 'ghost' as const,
+      label: t('copyPassword', 'Copy password'),
+      icon: copiedField === 'password' ? 'Check' as const : 'Copy' as const,
+      isIconOnly: true,
+      onPress: () => copyToClipboard(createdCredentials?.password || '', 'password'),
+      className: 'btn-square text-base-content/70 hover:text-primary',
+    }),
+    [copiedField, copyToClipboard, createdCredentials?.password, t]
+  );
+
+  const continueButtonProps = useMemo(
+    () => ({
+      action: 'primary' as const,
+      label: t('continue', 'Continue'),
+      icon: 'ArrowRight' as const,
+      onPress: handleContinue,
+      className: 'w-full gap-2 shadow-sm text-primary-content',
+    }),
+    [handleContinue, t]
+  );
+
   return {
     control,
     currentStep,
@@ -546,6 +635,13 @@ export function useProfileForm() {
     prevProps,
     saveProps,
     resetPasswordProps,
+    closeIconButtonProps,
+    identityTabProps,
+    addressTabProps,
+    copyEmailButtonProps,
+    togglePasswordButtonProps,
+    copyPasswordButtonProps,
+    continueButtonProps,
     isResettingPassword,
     // Credentials popup
     createdCredentials,

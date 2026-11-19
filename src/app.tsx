@@ -22,6 +22,7 @@ import { HeaderUser } from "./modules/auth/components/header-user.tsx";
 import { DashboardPage } from "./modules/dashboard/dashboard.page.tsx";
 import { ProfilePage } from "./modules/profiles/profile.page.tsx";
 import { SettingsPage } from "./modules/settings/settings.page.tsx";
+import { RoleAssignorPage } from "./modules/role-assignor/role-assignor.page.tsx";
 
 const MenuAccessPage = lazy(() =>
   import("./modules/menu/menu-access/menu-access.page.tsx").then((module) => ({
@@ -57,7 +58,7 @@ const PAGE_ELEMENTS: Record<string, ReactElement> = {
   "/stores": comingSoon,
   "/profiles": <ProfilePage />,
   "/store-management": comingSoon,
-  "/role-assignor": comingSoon,
+  "/role-assignor": <RoleAssignorPage />,
   "/menu-management": <MenuLinkPage />,
   "/menu-access": <MenuAccessPage />,
   "/app-settings": <SettingsPage />,

@@ -1,29 +1,22 @@
 // settings.page.tsx — view only. Basic example: one language and no branches, so no language or store section.
 import { ContentLayout, HeadLayout, TypeButton, TypeIcon, type Theme } from "shared-lib-web";
 import type { ReactElement } from "react";
-import { handleSettingsLayoutClick, handleSettingsMenuClick, handleSettingsNavigationClick, handleSettingsThemeClick, useSettings } from "./settings.page.ts";
+import type { TypeButtonProps } from "shared-lib-web";
+import { useSettings } from "./settings.page.ts";
 
 /** One button per theme, with the theme's primary / secondary / accent colours. */
-function buildThemeButtons(themes: Theme[], activeTheme: Theme): ReactElement[] {
+function buildThemeButtons(
+  themes: Theme[],
+  _activeTheme: Theme,
+  themeButtonProps: Record<string, TypeButtonProps>,
+): ReactElement[] {
   const buttons: ReactElement[] = [];
   for (const themeName of themes) {
-    const isActive = themeName === activeTheme;
     const button = (
-      <button
+      <TypeButton
+        {...themeButtonProps[themeName]}
         key={themeName}
-        type="button"
-        className={isActive ? "btn btn-sm btn-primary gap-2 capitalize" : "btn btn-sm btn-ghost gap-2 border border-base-300 capitalize"}
-        aria-pressed={isActive}
-        data-value={themeName}
-        onClick={handleSettingsThemeClick}
-      >
-        <span data-theme={themeName} className="flex gap-0.5 rounded bg-base-100 p-1" aria-hidden="true">
-          <span className="size-2 rounded-full bg-primary" />
-          <span className="size-2 rounded-full bg-secondary" />
-          <span className="size-2 rounded-full bg-accent" />
-        </span>
-        {themeName}
-      </button>
+      />
     );
     buttons.push(button);
   }
@@ -40,22 +33,19 @@ export function SettingsPage() {
     lightThemes,
     darkThemes,
     layoutTitle,
-    appLayoutText,
-    asideLayoutText,
-    layoutChoice,
     navigationTitle,
-    sidebarText,
-    megaMenuText,
-    navigationMode,
     hasMenu,
     menuTitle,
-    menuOnText,
-    menuOffText,
-    isMenuVisible,
+    appLayoutButtonProps,
+    asideLayoutButtonProps,
+    sidebarButtonProps,
+    megaMenuButtonProps,
+    menuOnButtonProps,
+    menuOffButtonProps,
+    themeButtonProps,
   } = useSettings();
-  const isSidebarMode = navigationMode === "sidebar";
-  const lightThemeButtons = buildThemeButtons(lightThemes, theme);
-  const darkThemeButtons = buildThemeButtons(darkThemes, theme);
+  const lightThemeButtons = buildThemeButtons(lightThemes, theme, themeButtonProps);
+  const darkThemeButtons = buildThemeButtons(darkThemes, theme, themeButtonProps);
 
   return (
     <>
@@ -64,24 +54,8 @@ export function SettingsPage() {
         <div>
           <h3 className="mb-2 font-semibold">{layoutTitle}</h3>
           <div className="join">
-            <TypeButton
-              action={layoutChoice === "app" ? "primary" : "ghost"}
-              size="sm"
-              icon="PanelTop"
-              label={appLayoutText}
-              className="join-item border border-base-300"
-              dataValue="app"
-              onPress={handleSettingsLayoutClick}
-            />
-            <TypeButton
-              action={layoutChoice === "aside" ? "primary" : "ghost"}
-              size="sm"
-              icon="PanelLeft"
-              label={asideLayoutText}
-              className="join-item border border-base-300"
-              dataValue="aside"
-              onPress={handleSettingsLayoutClick}
-            />
+            <TypeButton {...appLayoutButtonProps} />
+            <TypeButton {...asideLayoutButtonProps} />
           </div>
         </div>
         {/* No menu items yet: no sidebar / mega menu choice. */}
@@ -89,48 +63,16 @@ export function SettingsPage() {
           <div>
             <h3 className="mb-2 font-semibold">{navigationTitle}</h3>
             <div className="join">
-              <TypeButton
-                action={isSidebarMode ? "primary" : "ghost"}
-                size="sm"
-                icon="PanelLeft"
-                label={sidebarText}
-                className="join-item border border-base-300"
-                dataValue="sidebar"
-                onPress={handleSettingsNavigationClick}
-              />
-              <TypeButton
-                action={isSidebarMode ? "ghost" : "primary"}
-                size="sm"
-                icon="PanelTop"
-                label={megaMenuText}
-                className="join-item border border-base-300"
-                dataValue="megamenu"
-                onPress={handleSettingsNavigationClick}
-              />
+              <TypeButton {...sidebarButtonProps} />
+              <TypeButton {...megaMenuButtonProps} />
             </div>
           </div>
         ) : null}
         <div>
           <h3 className="mb-2 font-semibold">{menuTitle}</h3>
           <div className="join">
-            <TypeButton
-              action={isMenuVisible ? "primary" : "ghost"}
-              size="sm"
-              icon="Eye"
-              label={menuOnText}
-              className="join-item border border-base-300"
-              dataValue="on"
-              onPress={handleSettingsMenuClick}
-            />
-            <TypeButton
-              action={isMenuVisible ? "ghost" : "primary"}
-              size="sm"
-              icon="EyeOff"
-              label={menuOffText}
-              className="join-item border border-base-300"
-              dataValue="off"
-              onPress={handleSettingsMenuClick}
-            />
+            <TypeButton {...menuOnButtonProps} />
+            <TypeButton {...menuOffButtonProps} />
           </div>
         </div>
         <div>

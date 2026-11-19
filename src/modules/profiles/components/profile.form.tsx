@@ -7,12 +7,7 @@ import {
   TypeSelect,
   TypeSwitch,
 } from "shared-lib-web";
-import {
-  AlertCircle,
-  CheckCircle2,
-  MapPin,
-  User,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, MapPin, User } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -47,18 +42,23 @@ function CountryOptionButton({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  return (
-    <TypeButton
-      action="ghost"
-      label={`${item.flag} ${item.name} (${item.dialCode})`}
-      icon={isSelected ? "Check" : undefined}
-      onPress={onSelect}
-      className={`w-full justify-start !rounded-xl text-xs font-medium ${
+  const countryButtonProps = useMemo(
+    () => ({
+      action: "ghost" as const,
+      label: `${item.flag} ${item.name} (${item.dialCode})`,
+      icon: isSelected ? "Check" as const : undefined,
+      onPress: onSelect,
+      className: `w-full justify-start !rounded-xl text-xs font-medium ${
         isSelected
           ? "!bg-primary/15 !text-primary hover:!bg-primary/25"
           : "!bg-transparent !text-base-content hover:!bg-base-200"
-      }`}
-    />
+      }`,
+    }),
+    [isSelected, item, onSelect],
+  );
+
+  return (
+    <TypeButton {...countryButtonProps} />
   );
 }
 
@@ -125,6 +125,20 @@ export function CountryCodeSelect({
     setIsOpen((prev) => !prev);
   }, [disabled, isOpen, updatePosition]);
 
+  const triggerButtonProps = useMemo(
+    () => ({
+      action: "ghost" as const,
+      type: "button" as const,
+      label: `${selectedItem.flag} ${selectedItem.dialCode}`,
+      icon: "ChevronDown" as const,
+      disabled,
+      onPress: handleToggle,
+      className:
+        "flex items-center gap-1.5 px-3 py-2 !bg-base-200 hover:!bg-base-300 !text-base-content border-r border-base-300 shrink-0 !rounded-l-xl !rounded-r-none h-full min-h-[38px] !border-y-0 !border-l-0 !shadow-none font-normal",
+    }),
+    [disabled, handleToggle, selectedItem],
+  );
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -167,15 +181,7 @@ export function CountryCodeSelect({
     <div className={`relative shrink-0 ${className}`}>
       {/* Trigger Button: Flag + Code + Arrow snugly grouped via TypeButton */}
       <div ref={buttonRef} className="h-full">
-        <TypeButton
-          action="ghost"
-          type="button"
-          label={`${selectedItem.flag} ${selectedItem.dialCode}`}
-          icon="ChevronDown"
-          disabled={disabled}
-          onPress={handleToggle}
-          className="flex items-center gap-1.5 px-3 py-2 !bg-base-200 hover:!bg-base-300 !text-base-content border-r border-base-300 shrink-0 !rounded-l-xl !rounded-r-none h-full min-h-[38px] !border-y-0 !border-l-0 !shadow-none font-normal"
-        />
+        <TypeButton {...triggerButtonProps} />
       </div>
 
       {/* Floating Dropdown via Portal to document.body so it NEVER renders inside input container */}
@@ -219,7 +225,6 @@ export function ProfileForm() {
   const {
     control,
     currentStep,
-    onTabClick,
     onNext,
     isEdit,
     handleSubmit,
@@ -237,16 +242,18 @@ export function ProfileForm() {
     stateProps,
     postalCodeProps,
     countryProps,
-    cancelProps,
     nextProps,
     saveProps,
     resetPasswordProps,
+    closeIconButtonProps,
+    identityTabProps,
+    addressTabProps,
+    copyEmailButtonProps,
+    togglePasswordButtonProps,
+    copyPasswordButtonProps,
+    continueButtonProps,
     createdCredentials,
-    copiedField,
     showPassword,
-    setShowPassword,
-    copyToClipboard,
-    handleContinue,
   } = useProfileForm();
 
   return (
@@ -271,41 +278,16 @@ export function ProfileForm() {
               ) : (
                 <TypeButton key="step2-save-btn" {...saveProps} />
               )}
-              <TypeButton
-                action="ghost"
-                label={t("close")}
-                icon="X"
-                isIconOnly
-                onPress={cancelProps.onPress}
-                className="btn-circle opacity-70 hover:opacity-100 hover:bg-base-200"
-              />
+              <TypeButton {...closeIconButtonProps} />
             </>
           }
         />
 
-        <ContentLayout className="flex-1 overflow-y-auto pr-1">
+        <ContentLayout className="flex-1 overflow-y-auto pr-1 mt-6">
           <div className="mb-4 flex items-center gap-2 p-1 rounded-xl bg-base-200 border border-base-300">
-            <TypeButton
-              action="ghost"
-              label={`1 ${t("identityContact")}`}
-              onPress={() => void onTabClick(1)}
-              className={`flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all ${
-                currentStep === 1
-                  ? "bg-base-100 text-primary shadow-xs border border-base-300"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
-              }`}
-            />
+            <TypeButton {...identityTabProps} />
 
-            <TypeButton
-              action="ghost"
-              label={`2 ${t("addressDetails")}`}
-              onPress={() => void onTabClick(2)}
-              className={`flex-1 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all ${
-                currentStep === 2
-                  ? "bg-base-100 text-primary shadow-xs border border-base-300"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
-              }`}
-            />
+            <TypeButton {...addressTabProps} />
           </div>
           {currentStep === 1 ? (
             <div className="space-y-4">
@@ -450,16 +432,7 @@ export function ProfileForm() {
                       {createdCredentials.email || "—"}
                     </div>
                   </div>
-                  <TypeButton
-                    action="ghost"
-                    label={t("copyEmail", "Copy email")}
-                    icon={copiedField === "email" ? "Check" : "Copy"}
-                    isIconOnly
-                    onPress={() =>
-                      copyToClipboard(createdCredentials.email || "", "email")
-                    }
-                    className="btn-square text-base-content/70 hover:text-primary"
-                  />
+                  <TypeButton {...copyEmailButtonProps} />
                 </div>
 
                 {/* Password */}
@@ -475,31 +448,8 @@ export function ProfileForm() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <TypeButton
-                      action="ghost"
-                      label={
-                        showPassword
-                          ? t("hidePassword", "Hide password")
-                          : t("showPassword", "Show password")
-                      }
-                      icon={showPassword ? "EyeOff" : "Eye"}
-                      isIconOnly
-                      onPress={() => setShowPassword(!showPassword)}
-                      className="btn-square text-base-content/70 hover:text-primary"
-                    />
-                    <TypeButton
-                      action="ghost"
-                      label={t("copyPassword", "Copy password")}
-                      icon={copiedField === "password" ? "Check" : "Copy"}
-                      isIconOnly
-                      onPress={() =>
-                        copyToClipboard(
-                          createdCredentials.password || "",
-                          "password",
-                        )
-                      }
-                      className="btn-square text-base-content/70 hover:text-primary"
-                    />
+                    <TypeButton {...togglePasswordButtonProps} />
+                    <TypeButton {...copyPasswordButtonProps} />
                   </div>
                 </div>
               </div>
@@ -517,13 +467,7 @@ export function ProfileForm() {
                 </span>
               </div>
 
-              <TypeButton
-                action="primary"
-                label={t("continue", "Continue")}
-                icon="ArrowRight"
-                onPress={handleContinue}
-                className="w-full gap-2 shadow-sm text-primary-content"
-              />
+              <TypeButton {...continueButtonProps} />
             </div>
           </div>
         </div>

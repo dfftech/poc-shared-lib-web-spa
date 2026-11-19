@@ -15,8 +15,10 @@ import {
   type LayoutChoice,
   type NavigationMode,
   type Theme,
+  type TypeButtonProps,
 } from "shared-lib-web";
 import type { MouseEvent } from "react";
+import { useMemo } from "react";
 
 export interface SettingsModel {
   titleText: string;
@@ -40,6 +42,13 @@ export interface SettingsModel {
   menuOnText: string;
   menuOffText: string;
   isMenuVisible: boolean;
+  appLayoutButtonProps: TypeButtonProps;
+  asideLayoutButtonProps: TypeButtonProps;
+  sidebarButtonProps: TypeButtonProps;
+  megaMenuButtonProps: TypeButtonProps;
+  menuOnButtonProps: TypeButtonProps;
+  menuOffButtonProps: TypeButtonProps;
+  themeButtonProps: Record<string, TypeButtonProps>;
 }
 
 /** Theme buttons carry the theme name in data-value. */
@@ -70,6 +79,104 @@ export function handleSettingsMenuClick(event: MouseEvent<HTMLButtonElement>): v
 
 export function useSettings(): SettingsModel {
   const { t, theme, lightThemes, darkThemes } = useUi();
+  const layoutChoice = layoutChoiceSignal.value;
+  const navigationMode = navigationModeSignal.value;
+  const isMenuVisible = isMenuVisibleSignal.value;
+
+  const appLayoutButtonProps = useMemo(
+    () => ({
+      action: layoutChoice === "app" ? "primary" as const : "ghost" as const,
+      size: "sm" as const,
+      icon: "PanelTop" as const,
+      label: t("ui.appLayout"),
+      className: "join-item border border-base-300",
+      dataValue: "app" as const,
+      onPress: handleSettingsLayoutClick,
+    }),
+    [layoutChoice, t],
+  );
+
+  const asideLayoutButtonProps = useMemo<TypeButtonProps>(
+    () => ({
+      action: layoutChoice === "aside" ? "primary" : "ghost",
+      size: "sm",
+      icon: "PanelLeft",
+      label: t("ui.asideLayout"),
+      className: "join-item border border-base-300",
+      dataValue: "aside",
+      onPress: handleSettingsLayoutClick,
+    }),
+    [layoutChoice, t],
+  );
+  const sidebarButtonProps = useMemo<TypeButtonProps>(
+    () => ({
+      action: navigationMode === "sidebar" ? "primary" : "ghost",
+      size: "sm",
+      icon: "PanelLeft",
+      label: t("settings.sidebar"),
+      className: "join-item border border-base-300",
+      dataValue: "sidebar",
+      onPress: handleSettingsNavigationClick,
+    }),
+    [navigationMode, t],
+  );
+  const megaMenuButtonProps = useMemo<TypeButtonProps>(
+    () => ({
+      action: navigationMode === "megamenu" ? "primary" : "ghost",
+      size: "sm",
+      icon: "PanelTop",
+      label: t("settings.megamenu"),
+      className: "join-item border border-base-300",
+      dataValue: "megamenu",
+      onPress: handleSettingsNavigationClick,
+    }),
+    [navigationMode, t],
+  );
+  const menuOnButtonProps = useMemo<TypeButtonProps>(
+    () => ({
+      action: isMenuVisible ? "primary" : "ghost",
+      size: "sm",
+      icon: "Eye",
+      label: t("settings.menuOn"),
+      className: "join-item border border-base-300",
+      dataValue: "on",
+      onPress: handleSettingsMenuClick,
+    }),
+    [isMenuVisible, t],
+  );
+  const menuOffButtonProps = useMemo<TypeButtonProps>(
+    () => ({
+      action: isMenuVisible ? "ghost" : "primary",
+      size: "sm",
+      icon: "EyeOff",
+      label: t("settings.menuOff"),
+      className: "join-item border border-base-300",
+      dataValue: "off",
+      onPress: handleSettingsMenuClick,
+    }),
+    [isMenuVisible, t],
+  );
+
+  const themeButtonProps = useMemo(
+    () =>
+      Object.fromEntries(
+        [...lightThemes, ...darkThemes].map((themeName) => [
+          themeName,
+          {
+            action: themeName === theme ? ("primary" as const) : ("ghost" as const),
+            label: themeName,
+            size: "sm" as const,
+            icon: undefined,
+            className:
+              "gap-2 border border-base-300 capitalize",
+            dataValue: themeName,
+            onPress: handleSettingsThemeClick,
+          } satisfies TypeButtonProps,
+        ]),
+      ) as Record<string, TypeButtonProps>,
+    [darkThemes, lightThemes, t, theme],
+  );
+
   return {
     titleText: t("settings.title"),
     themeTitle: t("settings.theme"),
@@ -91,5 +198,12 @@ export function useSettings(): SettingsModel {
     menuOnText: t("settings.menuOn"),
     menuOffText: t("settings.menuOff"),
     isMenuVisible: isMenuVisibleSignal.value,
+    appLayoutButtonProps,
+    asideLayoutButtonProps,
+    sidebarButtonProps,
+    megaMenuButtonProps,
+    menuOnButtonProps,
+    menuOffButtonProps,
+    themeButtonProps,
   };
 }

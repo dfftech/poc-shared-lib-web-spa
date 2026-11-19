@@ -1,6 +1,7 @@
-import { localeSignal } from "shared-lib-web";
+import { localeSignal, resolveLucideIcon } from "shared-lib-web";
 import { useSignals } from "@preact/signals-react/runtime";
 import type { ForwardedRef } from "react";
+import { useForm, type Path } from "react-hook-form";
 import {
   useCallback,
   useEffect,
@@ -36,6 +37,8 @@ export type MenuAccessFormHandle = {
   hasChanges: boolean;
 };
 
+type PermissionCheckboxValues = Record<string, Permission>;
+
 export function useMenuAccessForm(
   props: MenuAccessFormProps,
   ref: ForwardedRef<MenuAccessFormHandle>,
@@ -59,6 +62,9 @@ export function useMenuAccessForm(
   const [originalPermissions, setOriginalPermissions] = useState<
     Record<string, Permission>
   >({});
+  const { control, setValue, watch } = useForm<PermissionCheckboxValues>({
+    defaultValues: {},
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -107,53 +113,150 @@ export function useMenuAccessForm(
     onPermissionsChange?.(hasChanges);
   }, [hasChanges, onPermissionsChange]);
 
-  const handlePermissionChange = useCallback(
-    (featureId: string, permissionType: keyof Permission) => {
-      setPermissions((prev) => {
-        const current = prev[featureId] || {
-          get: false,
-          create: false,
-          update: false,
-          delete: false,
-        };
-        const nextValue = !current[permissionType];
+  const applyPermissionChange = useCallback(
+    (
+      previous: Record<string, Permission>,
+      featureId: string,
+      permissionType: keyof Permission,
+      nextValue?: boolean,
+    ) => {
+      const current = previous[featureId] || {
+        get: false,
+        create: false,
+        update: false,
+        delete: false,
+      };
+      const value =
+        typeof nextValue === "boolean"
+          ? nextValue
+          : !current[permissionType];
 
-        // When read (get) is unchecked, uncheck all other accesses (create, update/write, delete)
-        if (permissionType === "get" && !nextValue) {
-          return {
-            ...prev,
-            [featureId]: {
-              get: false,
-              create: false,
-              update: false,
-              delete: false,
-            },
-          };
-        }
-
-        // When any create / write (update) / delete is checked, ensure read (get) is also checked
-        if (permissionType !== "get" && nextValue) {
-          return {
-            ...prev,
-            [featureId]: {
-              ...current,
-              get: true,
-              [permissionType]: true,
-            },
-          };
-        }
-
+      if (permissionType === "get" && !value) {
         return {
-          ...prev,
+          ...previous,
           [featureId]: {
-            ...current,
-            [permissionType]: nextValue,
+            get: false,
+            create: false,
+            update: false,
+            delete: false,
           },
         };
-      });
+      }
+
+      if (permissionType !== "get" && value) {
+        return {
+          ...previous,
+          [featureId]: {
+            ...current,
+            get: true,
+            [permissionType]: true,
+          },
+        };
+      }
+
+      return {
+        ...previous,
+        [featureId]: {
+          ...current,
+          [permissionType]: value,
+        },
+      };
     },
     [],
   );
+
+  const handlePermissionChange = useCallback(
+    (featureId: string, permissionType: keyof Permission) => {
+      setPermissions((previous) =>
+        applyPermissionChange(previous, featureId, permissionType),
+      );
+    },
+    [applyPermissionChange],
+  );
+
+  useEffect(() => {
+    Object.entries(permissions).forEach(([id, permission]) => {
+      (["get", "create", "update", "delete"] as const).forEach((permissionType) => {
+        setValue(
+          `${id}.${permissionType}` as never,
+          permission[permissionType] as never,
+          { shouldDirty: false },
+        );
+      });
+    });
+  }, [permissions, setValue]);
+
+  useEffect(() => {
+    const subscription = watch((values) => {
+      setPermissions((previous) => {
+        let next = previous;
+        const checkboxValues = values as PermissionCheckboxValues;
+        for (const [id, permission] of Object.entries(checkboxValues)) {
+          if (!permission) continue;
+          (["get", "create", "update", "delete"] as const).forEach((permissionType) => {
+            const value = permission[permissionType];
+            if (typeof value === "boolean" &&
+                previous[id]?.[permissionType] !== value) {
+              next = applyPermissionChange(next, id, permissionType, value);
+            }
+          });
+        }
+        return next;
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [applyPermissionChange, watch]);
+
+  const permissionCheckboxProps = useMemo(() => {
+    const props: Record<string, {
+      control: typeof control;
+      name: Path<PermissionCheckboxValues>;
+      label: string;
+      disabled: boolean;
+      className: string;
+    }> = {};
+
+    const processItem = (item: TransformedMenuAccessType) => {
+      if (item.id) {
+        (["get", "create", "update", "delete"] as const).forEach((permissionType) => {
+          props[`${item.id}.${permissionType}`] = {
+            control,
+            name: `${item.id}.${permissionType}` as Path<PermissionCheckboxValues>,
+            label: "",
+            disabled: !canUpdate,
+            className:
+              "m-0 flex justify-center [&>label]:justify-center [&>label]:gap-0 [&>label]:p-0 [&>label>span]:hidden [&>p]:hidden",
+          };
+        });
+      }
+      item.children?.forEach(processItem);
+    };
+    menuAccessData.forEach(processItem);
+    return props;
+  }, [canUpdate, control, menuAccessData]);
+
+  const iconProps = useMemo(() => {
+    const props: Record<string, { name: string; size: number; className?: string }> = {};
+    const processItem = (item: TransformedMenuAccessType) => {
+      if (item.id) {
+        props[item.id] = {
+          name: resolveLucideIcon(item.icon),
+          size: 18,
+        };
+      }
+      item.children?.forEach((child) => {
+        if (child.id) {
+          props[child.id] = {
+            name: resolveLucideIcon(child.icon),
+            size: 16,
+            className: "text-base-content/60",
+          };
+        }
+      });
+    };
+    menuAccessData.forEach(processItem);
+    return props;
+  }, [menuAccessData]);
 
   const handleReset = useCallback(() => {
     setPermissions(JSON.parse(JSON.stringify(originalPermissions)));
@@ -217,6 +320,8 @@ export function useMenuAccessForm(
     selectedRoleName,
     canUpdate,
     handlePermissionChange,
+    permissionCheckboxProps,
+    iconProps,
     handleReset,
     handleSave,
   };

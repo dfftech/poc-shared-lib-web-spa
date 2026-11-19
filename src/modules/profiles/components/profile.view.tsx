@@ -1,4 +1,4 @@
-import { Mail, MapPin, Shield, Copy, Check, X } from "lucide-react";
+import { Mail, MapPin, Shield } from "lucide-react";
 import { ContentLayout, HeadLayout, TypeButton } from "shared-lib-web";
 import { useProfileTranslation } from "../hooks/use-profile-translation";
 import { useProfileView } from "./profile.view.ts";
@@ -16,8 +16,8 @@ export function ProfileView() {
     canUpdate,
     cancelProps,
     editActionProps,
-    copiedKey,
-    copyToClipboard,
+    emailCopyButtonProps,
+    phoneCopyButtonProps,
   } = useProfileView();
 
   if (!profile) {
@@ -36,14 +36,7 @@ export function ProfileView() {
         actions={
           <>
             {canUpdate && <TypeButton {...editActionProps} />}
-            <button
-              type="button"
-              onClick={cancelProps.onPress}
-              className="btn btn-ghost btn-sm btn-circle opacity-70 hover:opacity-100 hover:bg-base-200"
-              title={t("close")}
-            >
-              <X size={18} />
-            </button>
+            <TypeButton {...cancelProps} />
           </>
         }
       />
@@ -99,17 +92,7 @@ export function ProfileView() {
               </span>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm font-semibold">{profile.email}</span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(profile.email, "email")}
-                  className="opacity-60 hover:opacity-100 p-1 rounded"
-                >
-                  {copiedKey === "email" ? (
-                    <Check size={14} className="text-success" />
-                  ) : (
-                    <Copy size={14} />
-                  )}
-                </button>
+                <TypeButton {...emailCopyButtonProps} />
               </div>
             </div>
 
@@ -122,22 +105,7 @@ export function ProfileView() {
                   +{String(profile.telCode || "").replace(/^\+/, "")}{" "}
                   {profile.mobile}
                 </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    copyToClipboard(
-                      `+${String(profile.telCode || "").replace(/^\+/, "")}${profile.mobile}`,
-                      "phone",
-                    )
-                  }
-                  className="opacity-60 hover:opacity-100 p-1 rounded"
-                >
-                  {copiedKey === "phone" ? (
-                    <Check size={14} className="text-success" />
-                  ) : (
-                    <Copy size={14} />
-                  )}
-                </button>
+                <TypeButton {...phoneCopyButtonProps} />
               </div>
             </div>
 

@@ -2,7 +2,7 @@
 
 import { TypeIcon, TypeSelect } from "shared-lib-web";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useMenuRoles, type MenuRolesProps } from "./menu-roles.ts";
 import { RoleAddInline } from "./role-add-inline.tsx";
@@ -26,6 +26,18 @@ export function MenuRoles(props: MenuRolesProps) {
   const { control, setValue, watch } = useForm<{ roleId: string }>({
     defaultValues: { roleId: roleSelectProps.value },
   });
+  const roleFieldProps = useMemo(
+    () => ({
+      name: "roleId" as const,
+      label: "Role",
+      options: roleSelectProps.options.map((option) => ({
+        key: option.value,
+        label: option.label,
+      })),
+      className: "w-full [&>label]:sr-only",
+    }),
+    [roleSelectProps.options],
+  );
 
   useEffect(() => {
     setValue("roleId", roleSelectProps.value);
@@ -46,13 +58,7 @@ export function MenuRoles(props: MenuRolesProps) {
         <div className="w-48 sm:w-60">
           <TypeSelect
             control={control}
-            name="roleId"
-            label="Role"
-            options={roleSelectProps.options.map((option) => ({
-              key: option.value,
-              label: option.label,
-            }))}
-            className="w-full [&>label]:sr-only"
+            {...roleFieldProps}
           />
         </div>
         {canUpdate && <TypeIcon {...editRoleButtonProps} />}

@@ -1,6 +1,6 @@
 'use client';
 
-import { SkeletonMenu, TypeIcon, resolveLucideIcon } from 'shared-lib-web';
+import { SkeletonMenu, TypeCheckbox, TypeIcon } from 'shared-lib-web';
 import { useSignals } from '@preact/signals-react/runtime';
 import React, { forwardRef } from 'react';
 import { useTranslation } from '../../hooks/use-menu-translation.ts';
@@ -18,11 +18,10 @@ export const MenuAccessForm = forwardRef<MenuAccessFormHandle, MenuAccessFormPro
     const { t } = useTranslation();
     const {
       menuAccessData,
-      permissions,
       isLoading,
       selectedRoleName,
-      canUpdate,
-      handlePermissionChange,
+      permissionCheckboxProps,
+      iconProps,
     } = useMenuAccessForm(props, ref);
 
     return (
@@ -69,7 +68,7 @@ export const MenuAccessForm = forwardRef<MenuAccessFormHandle, MenuAccessFormPro
                       <tr className="bg-base-200/50 font-semibold text-base-content">
                         <td className="px-4 py-3.5">
                           <span className="flex items-center gap-2">
-                            <TypeIcon name={resolveLucideIcon(feature.icon)} size={18} />
+                            <TypeIcon {...iconProps[featureId]} />
                             {feature.name}
                           </span>
                         </td>
@@ -77,13 +76,7 @@ export const MenuAccessForm = forwardRef<MenuAccessFormHandle, MenuAccessFormPro
                         {!hasChildren &&
                           (['get', 'create', 'update', 'delete'] as const).map((perm) => (
                             <td key={perm} className="text-center py-3.5">
-                              <input
-                                type="checkbox"
-                                checked={permissions[featureId]?.[perm] || false}
-                                onChange={() => handlePermissionChange(featureId, perm)}
-                                className="checkbox checkbox-sm checkbox-primary rounded-md"
-                                disabled={!canUpdate}
-                              />
+                              <TypeCheckbox {...permissionCheckboxProps[`${featureId}.${perm}`]} />
                             </td>
                           ))}
                         {/* Group rows have no permission cells; span the permission columns so
@@ -102,24 +95,14 @@ export const MenuAccessForm = forwardRef<MenuAccessFormHandle, MenuAccessFormPro
                             >
                               <td className="px-4 py-3 pl-8 text-sm">
                                 <span className="flex items-center gap-2">
-                                  <TypeIcon
-                                    name={resolveLucideIcon(child.icon)}
-                                    size={16}
-                                    className="text-base-content/60"
-                                  />
+                                  <TypeIcon {...iconProps[childId]} />
                                   {child.name}
                                 </span>
                               </td>
 
                               {(['get', 'create', 'update', 'delete'] as const).map((perm) => (
                                 <td key={perm} className="text-center py-3">
-                                  <input
-                                    type="checkbox"
-                                    checked={permissions[childId]?.[perm] || false}
-                                    onChange={() => handlePermissionChange(childId, perm)}
-                                    className="checkbox checkbox-sm checkbox-primary rounded-md"
-                                    disabled={!canUpdate}
-                                  />
+                                  <TypeCheckbox {...permissionCheckboxProps[`${childId}.${perm}`]} />
                                 </td>
                               ))}
                             </tr>

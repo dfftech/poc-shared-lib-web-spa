@@ -26,20 +26,21 @@ export function useProfileView() {
       editModeUpdate(profileSelectedId.value, "edit");
     }
   }, []);
-
-  const copyToClipboard = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = useCallback((text: string, key: string) => {
+    void navigator.clipboard.writeText(text);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 2000);
-  };
+  }, []);
 
   const cancelProps = useMemo(
     () => ({
-      action: "secondary" as const,
+      action: "ghost" as const,
       label: t("close"),
-      name: "X" as const,
+      icon: "X" as const,
+      isIconOnly: true,
       onPress: onCancel,
       type: "button" as const,
+      className: "btn-circle opacity-70 hover:opacity-100 hover:bg-base-200",
     }),
     [t, onCancel]
   );
@@ -57,11 +58,40 @@ export function useProfileView() {
     [t, onEdit]
   );
 
+  const emailCopyButtonProps = useMemo(
+    () => ({
+      action: "ghost" as const,
+      label: t("copyEmail", "Copy email"),
+      icon: copiedKey === "email" ? "Check" as const : "Copy" as const,
+      isIconOnly: true,
+      onPress: () => copyToClipboard(profile?.email || "", "email"),
+      className: "btn-square btn-ghost opacity-60 hover:opacity-100",
+    }),
+    [copiedKey, copyToClipboard, profile?.email, t],
+  );
+
+  const phoneCopyButtonProps = useMemo(
+    () => ({
+      action: "ghost" as const,
+      label: t("copyMobile", "Copy mobile"),
+      icon: copiedKey === "phone" ? "Check" as const : "Copy" as const,
+      isIconOnly: true,
+      onPress: () => {
+        const phone = `+${String(profile?.telCode || "").replace(/^\+/, "")}${profile?.mobile || ""}`;
+        copyToClipboard(phone, "phone");
+      },
+      className: "btn-square btn-ghost opacity-60 hover:opacity-100",
+    }),
+    [copiedKey, copyToClipboard, profile?.mobile, profile?.telCode, t],
+  );
+
   return {
     profile,
     canUpdate,
     cancelProps,
     editActionProps,
+    emailCopyButtonProps,
+    phoneCopyButtonProps,
     copiedKey,
     copyToClipboard,
   };
